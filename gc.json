@@ -1,0 +1,68 @@
+{
+    "InstallPath":  "C:\\Program Files (x86)\\World of Warcraft\\Interface\\AddOns",
+    "TempPath":  "C:\\Users\\Jessie\\AppData\\Local\\Temp",
+    "WowVers":  "7.1.0",
+    "DownloadOld":  0,
+    "Addons":  [
+                   {
+                       "AddonRel":  0,
+                       "AddonUrl":  "https://www.wowace.com/projects/bartender4/files",
+                       "AddonName":  "Bartender"
+                   },
+                   {
+                       "AddonRel":  0,
+                       "AddonUrl":  "https://wow.curseforge.com/projects/big-wigs/files",
+                       "AddonName":  "BigWigs"
+                   },
+                   {
+                       "AddonRel":  0,
+                       "AddonUrl":  "https://wow.curseforge.com/projects/gtfo/files",
+                       "AddonName":  "GTFO"
+                   },
+                   {
+                       "AddonRel":  0,
+                       "AddonUrl":  "https://wow.curseforge.com/projects/little-wigs/files",
+                       "AddonName":  "LittleWigs"
+                   },
+                   {
+                       "AddonRel":  0,
+                       "AddonUrl":  "https://wow.curseforge.com/projects/master-plan/files",
+                       "AddonName":  "MasterPlan"
+                   },
+                   {
+                       "AddonRel":  0,
+                       "AddonUrl":  "https://wow.curseforge.com/projects/move-anything/files",
+                       "AddonName":  "MoveAnything"
+                   },
+                   {
+                       "AddonRel":  0,
+                       "AddonUrl":  "https://wow.curseforge.com/projects/omni-cc/files",
+                       "AddonName":  "OmniCC"
+                   },
+                   {
+                       "AddonRel":  0,
+                       "AddonUrl":  "https://wow.curseforge.com/projects/rclootcouncil/files",
+                       "AddonName":  "RCLootCouncil"
+                   },
+                   {
+                       "AddonRel":  0,
+                       "AddonUrl":  "https://wow.curseforge.com/projects/sexymap/files",
+                       "AddonName":  "SexyMap"
+                   },
+                   {
+                       "AddonRel":  0,
+                       "AddonUrl":  "https://www.wowace.com/projects/skada/files",
+                       "AddonName":  "Skada"
+                   },
+                   {
+                       "AddonRel":  0,
+                       "AddonUrl":  "https://www.wowace.com/projects/weakauras-2/files",
+                       "AddonName":  "WeakAuras2"
+                   },
+                   {
+                       "AddonRel":  0,
+                       "AddonUrl":  "https://www.wowace.com/projects/shadowed-unit-frames/files",
+                       "AddonName":  "ShadowedUnitFrames"
+                   }
+               ]
+}
