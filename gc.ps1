@@ -1,5 +1,5 @@
 Param (
-    [switch]$background,
+    [switch]$batch,
     [int]$addon
 )
 function initialize-Config () {
@@ -423,7 +423,7 @@ Write-Host -NoNewLine -ForegroundColor DarkGreen @"
 $gcObj = initialize-Config
 if (!(Test-Path $gcObj.InstallPath)) {
     Write-Host -ForegroundColor Red "`n`tInvalid Addon Installation Path"
-    if ($background) {
+    if ($batch) {
         exit 1
     }
     else {
@@ -432,7 +432,7 @@ if (!(Test-Path $gcObj.InstallPath)) {
 }
 if (!(Test-Path $gcObj.TempPath)) {
     Write-Host -ForegroundColor Red "`n`tInvalid Temp Path"
-    if ($background) {
+    if ($batch) {
         exit 1
     }
     else {
@@ -441,14 +441,14 @@ if (!(Test-Path $gcObj.TempPath)) {
 }
 if (($gcObj.WowVers -notmatch "^[0-9]{1,2}\.[0-9]{1,2}\.[0-9]{1,2}$") -and ($gcObj.DownloadOld -eq 0)) {
     Write-Host -ForegroundColor Red "`n`tInvalid WoW Release Version"
-    if ($background) {
+    if ($batch) {
         exit 1
     }
     else {
         update-wowVers
     }
 }
-if ($background) {
+if ($batch) {
     install-Addons $addon
 }
 else {
