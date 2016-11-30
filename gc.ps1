@@ -14,6 +14,8 @@ function initialize-Config () {
         }
         Add-Member -InputObject $gcObj -Type NoteProperty -Name "InstallPath" -Value "$pfDir\World of Warcraft\Interface\AddOns"
         Add-Member -InputObject $gcObj -Type NoteProperty -Name "TempPath" -Value $env:TEMP
+        Add-Member -InputObject $gcObj -Type NoteProperty -Name "WowVers" -Value $null
+        Add-Member -InputObject $gcObj -Type NoteProperty -Name "DownloadOld" -Value 0
         Add-Member -InputObject $gcObj -Type NoteProperty -Name "Addons" -Value @()
         write-Config $gcObj
     }
@@ -255,11 +257,70 @@ function update-tempPath ($gcObj) {
     } until ($done)
 }
 
-function show-Paths ($gcObj) {
-    Write-Host -NoNewLine -ForegroundColor Yellow "`n`tAddon Installation Path: "
+function update-wowVers ($gcObj) {
+    do {
+        $done = $false
+        Write-Host -NoNewLine -ForegroundColor Yellow "`n`tChange WoW Release Version: "
+        Write-Host -NoNewline "$($gcObj.WowVers)? ('q' to exit): "
+        $newWowVers = read-host
+        if ($newWowVers -match "^[0-9]{1,2}\.[0-9]{1,2}\.[0-9]{1,2}$") {
+            $gcObj.WowVers = $newWowVers
+            write-Config $gcObj
+            Write-Host -ForegroundColor Yellow "`n`tWoW Release Version Updated Successfully"
+            $done = $true
+        }
+        elseif ($newWowVers -eq "q") {
+            Write-Host "`n`tExiting."
+            $done = $true
+        }
+        else {
+            Write-Host -ForegroundColor Red "`n`t$newWowVers is an invalid version (format is #.#.#)" 
+        }
+    } until ($done)
+
+}
+
+function update-downloadOld ($gcObj) {
+    do {
+        $done = $false
+        Write-Host -NoNewLine -ForegroundColor Yellow "`n`tDownload out of date Addons: "
+        Write-Host -NoNewline "[Y]es or [N]o? ('q' to exit): "
+        $newDownloadOld = read-host 
+        switch -Regex ($newDownloadOld) {
+            "^y" {$gcObj.DownloadOld = 1; write-Config $gcObj; Write-Host -ForegroundColor Yellow "`n`tDownload out of date Addons Updated Successfully"; $done = $true}
+            "^n" {$gcObj.DownloadOld = 0; write-Config $gcObj; Write-Host -ForegroundColor Yellow "`n`tDownload out of date Addons Updated Successfully"; $done = $true}
+            "^q" {Write-Host "`n`tExiting."; $done = $true}
+            default {Write-Host -ForegroundColor Red "`n`tInvalid Option...`n"}
+        }
+    } until ($done)
+
+}
+
+function update-Settings ($gcObj) {
+    do {
+        $done = $false
+        show-Settings $gcObj
+        $choice = Read-Host "`n`tNumber of Setting to Change ('q' to exit)"
+        switch ($choice) {
+            0 {update-installPath $gcObj; $done = $true}
+            1 {update-tempPath $gcObj; $done = $true}
+            2 {update-wowVers $gcObj; $done = $true}
+            3 {update-downloadOld $gcObjl; $done = $true}
+            "q" {$done = $true}
+            default {Write-Host -ForegroundColor Red "`n`tInvalid Option..."}
+        }
+    } until ($done)
+}
+
+function show-Settings ($gcObj) {
+    Write-Host -NoNewLine -ForegroundColor Yellow "`n`t0. Addon Installation Path: "
     Write-Host $gcObj.InstallPath
-    Write-Host -NoNewline -ForegroundColor Yellow "`n`tTemporary Files Path: "
+    Write-Host -NoNewline -ForegroundColor Yellow "`n`t1. Temporary Files Path: "
     Write-Host $gcObj.TempPath
+    Write-Host -NoNewline -ForegroundColor Yellow "`n`t2. Current WoW release: "
+    Write-Host $gcObj.WowVers
+    Write-Host -NoNewline -ForegroundColor Yellow "`n`t3. Download Out of Date Addons: "
+    Write-Host ([bool]$gcObj.DownloadOld)
 }
 
 function install-Addons ($gcObj, $addonNum) {
@@ -276,22 +337,28 @@ function install-Addons ($gcObj, $addonNum) {
         }
         else {
             $addonPage = Invoke-WebRequest $addonObj.AddonUrl
+            $addonVers = $addonPage.parsedhtml.body.getElementsByClassName("version-label")[0].innerText
             $addonLinks = $addonPage.Links | Where-Object {$_.Title -eq "download file"} | Select-Object href
             $addonUrlParse = $addonObj.AddonUrl.Split("/")
             $addonUrl = "$($addonUrlParse[0])//$($addonUrlParse[2])$($addonLinks[0].href)"
         }
-        Write-Host -ForegroundColor Cyan "`n`tDownloading the latest $($addonObj.AddonName) file..."
-        $addonZip = "$($gcObj.TempPath)\$($addonObj.AddonName).zip"
-        Invoke-WebRequest -Uri $addonUrl -OutFile $addonZip
-        Write-Host -ForegroundColor DarkGray "`t...Download Complete"
-        write-Host -ForegroundColor Yellow "`n`tUnzipping $($addonObj.AddonName).zip ..."
-        $shell = new-object -com shell.application
-        $zip = $shell.NameSpace($addonZip)
-        foreach($zipItem in $zip.items())
-        {
-            $shell.Namespace($gcObj.InstallPath).copyhere($zipItem, 0x14)
+        if (($addonVers -eq $gcObj.WowVers) -or ($gcObj.DownloadOld -eq 1)) {
+            Write-Host -ForegroundColor Cyan "`n`tDownloading the latest $($addonObj.AddonName) file..."
+            $addonZip = "$($gcObj.TempPath)\$($addonObj.AddonName).zip"
+            Invoke-WebRequest -Uri $addonUrl -OutFile $addonZip
+            Write-Host -ForegroundColor DarkGray "`t...Download Complete"
+            write-Host -ForegroundColor Yellow "`n`tUnzipping $($addonObj.AddonName).zip ..."
+            $shell = new-object -com shell.application
+            $zip = $shell.NameSpace($addonZip)
+            foreach($zipItem in $zip.items())
+            {
+                $shell.Namespace($gcObj.InstallPath).copyhere($zipItem, 0x14)
+            }
+            Write-Host -ForegroundColor Green "`t...Installation of $($addonObj.AddonName) Complete"
         }
-        Write-Host -ForegroundColor Green "`t...Installation of $($addonObj.AddonName) Complete"
+        else {
+            Write-Host -ForegroundColor Red "`n`tAddon $($addonObj.addonname) is out of date, skipping..."
+        }
     }
 }
 
@@ -302,8 +369,8 @@ Write-Host -NoNewLine -ForegroundColor DarkGreen @"
 `t[N]ew addon entry
 `t[C]hange addon entry
 `t[R]emove addon entry
-`t[S]how Paths
-`t[E]dit paths 
+`t[S]how settings
+`t[E]dit settings
 `t[I]nstall/Update ALL Addons
 `t[U]pdate/Install Specific Addon
 `t[Q]uit:
@@ -328,8 +395,8 @@ Write-Host -NoNewLine -ForegroundColor DarkGreen @"
                     write-host -ForegroundColor Red "`n`tNo addon entries found.`n"
                 }
             }
-            "s" {show-Paths $gcObj}
-            "e" {update-installPath $gcObj; update-tempPath $gcObj}
+            "s" {show-Settings $gcObj}
+            "e" {update-Settings $gcObj}
             "i" {install-Addons $gcObj}
             "u" {
                 show-Addons
@@ -356,14 +423,29 @@ Write-Host -NoNewLine -ForegroundColor DarkGreen @"
 $gcObj = initialize-Config
 if (!(Test-Path $gcObj.InstallPath)) {
     Write-Host -ForegroundColor Red "`n`tInvalid Addon Installation Path"
-    if (!$background) {
+    if ($background) {
+        exit 1
+    }
+    else {
         update-installPath $gcObj
     }
 }
 if (!(Test-Path $gcObj.TempPath)) {
     Write-Host -ForegroundColor Red "`n`tInvalid Temp Path"
-    if (!$background) {
+    if ($background) {
+        exit 1
+    }
+    else {
         update-tempPath $gcObj
+    }
+}
+if (($gcObj.WowVers -notmatch "^[0-9]{1,2}\.[0-9]{1,2}\.[0-9]{1,2}$") -and ($gcObj.DownloadOld -eq 0)) {
+    Write-Host -ForegroundColor Red "`n`tInvalid WoW Release Version"
+    if ($background) {
+        exit 1
+    }
+    else {
+        update-wowVers $gcObj
     }
 }
 if ($background) {
@@ -372,5 +454,3 @@ if ($background) {
 else {
     invoke-Menu $gcObj
 }
-
-
