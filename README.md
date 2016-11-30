@@ -1,7 +1,7 @@
 # gc
 the ghetto wow addon update client
 
-Can be run interactively or in the background to download and install WoW addons using curseforge and wowace project URLs.
+Can be run interactively or in batch mode to download and install WoW addons using curseforge and wowace project URLs.
 
 Simply call .\gc.ps1 to run interactively or call it with the -batch paramater to update all addons. To update a single addon, call with '-batch -addon <number>' where <number> is the number of the addon you want to update.
 
