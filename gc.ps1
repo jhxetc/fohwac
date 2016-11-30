@@ -28,11 +28,11 @@ function initialize-Config () {
     return $gcObj
 }
 
-function write-Config ($gcObj) {
+function write-Config () {
     ConvertTo-Json -InputObject $gcObj | Out-File -encoding ascii -force $MyInvocation.ScriptName.Replace('ps1','json')
 }
 
-function add-Addon ($gcObj) {
+function add-Addon () {
     $newAddonsObj = New-Object -TypeName psobject -Property @{"AddonName"=$null; "AddonUrl"=$null; "AddonRel"=$null}
     do {
         $done = $false
@@ -77,11 +77,11 @@ function add-Addon ($gcObj) {
     $newAddonsObj.AddonUrl = $addonUrl
     $newAddonsObj.AddonRel = [int]$addonRel
     $gcObj.Addons += $newAddonsObj
-    write-Config $gcObj
+    write-Config
     Write-Host -ForegroundColor Cyan "`n`tAddon: $addonName Successfully Added."
 }
 
-function update-Addon ($gcObj) {
+function update-Addon () {
     show-Addons
     try {
         [int]$addonNum = Read-Host "`n`tNumber of Addon to Update (any non-number to exit)"
@@ -146,11 +146,11 @@ function update-Addon ($gcObj) {
            default {write-host -ForegroundColor Red "`n`tInvalid response...`n"}
        }
     } until ($done)
-    write-Config $gcObj
+    write-Config
     Write-Host -ForegroundColor Cyan "`n`t$($gcObj.Addons[$addonNum].AddonName) Successfully Updated.`n"
 }
 
-function remove-Addon ($gcObj) {
+function remove-Addon () {
     show-Addons
     $addonNum = Read-Host "`n`tNumber of Addon to Remove (any non-number to exit)"
     if ([string]::IsNullOrEmpty($addonNum)) {
@@ -177,7 +177,7 @@ function remove-Addon ($gcObj) {
         }
     }
     $gcObj.Addons = $newAddonsObj.Addons
-    write-Config $gcObj
+    write-Config
     Write-Host -ForegroundColor Yellow "`n`t$remAddonName Successfully Removed`n"
 }
 
@@ -193,7 +193,7 @@ function show-Addons () {
     }
 }
 
-function update-installPath ($gcObj) {
+function update-installPath () {
     do {
         $done = $false
         Write-Host -NoNewLine -ForegroundColor Yellow "`n`tChange Addon Installation Path: "
@@ -214,7 +214,7 @@ function update-installPath ($gcObj) {
         else {
             if (Test-Path $newInstallPath) {
                 $gcObj.InstallPath = (Convert-Path $newInstallPath)
-                write-Config $gcObj
+                write-Config
                 Write-Host -ForegroundColor Yellow "`n`tAddon Installation Path Updated Successfully."
                 $done = $true
             }
@@ -225,7 +225,7 @@ function update-installPath ($gcObj) {
     } until ($done)
 }
 
-function update-tempPath ($gcObj) {
+function update-tempPath () {
     do {
         $done = $false
         Write-Host -NoNewLine -ForegroundColor Yellow "`n`tChange Temporary Files Path: "
@@ -246,7 +246,7 @@ function update-tempPath ($gcObj) {
         else {
             if (Test-Path $newTempPath) {
                 $gcObj.TempPath = (Convert-Path $newTempPath)
-                write-Config $gcObj
+                write-Config
                 Write-Host -ForegroundColor Yellow "`n`tTemporary Files Path Updated Successfully."
                 $done = $true
             }
@@ -257,7 +257,7 @@ function update-tempPath ($gcObj) {
     } until ($done)
 }
 
-function update-wowVers ($gcObj) {
+function update-wowVers () {
     do {
         $done = $false
         Write-Host -NoNewLine -ForegroundColor Yellow "`n`tChange WoW Release Version: "
@@ -265,7 +265,7 @@ function update-wowVers ($gcObj) {
         $newWowVers = read-host
         if ($newWowVers -match "^[0-9]{1,2}\.[0-9]{1,2}\.[0-9]{1,2}$") {
             $gcObj.WowVers = $newWowVers
-            write-Config $gcObj
+            write-Config
             Write-Host -ForegroundColor Yellow "`n`tWoW Release Version Updated Successfully"
             $done = $true
         }
@@ -280,15 +280,15 @@ function update-wowVers ($gcObj) {
 
 }
 
-function update-downloadOld ($gcObj) {
+function update-downloadOld () {
     do {
         $done = $false
         Write-Host -NoNewLine -ForegroundColor Yellow "`n`tDownload out of date Addons: "
         Write-Host -NoNewline "[Y]es or [N]o? ('q' to exit): "
         $newDownloadOld = read-host 
         switch -Regex ($newDownloadOld) {
-            "^y" {$gcObj.DownloadOld = 1; write-Config $gcObj; Write-Host -ForegroundColor Yellow "`n`tDownload out of date Addons Updated Successfully"; $done = $true}
-            "^n" {$gcObj.DownloadOld = 0; write-Config $gcObj; Write-Host -ForegroundColor Yellow "`n`tDownload out of date Addons Updated Successfully"; $done = $true}
+            "^y" {$gcObj.DownloadOld = 1; write-Config; Write-Host -ForegroundColor Yellow "`n`tDownload out of date Addons Updated Successfully"; $done = $true}
+            "^n" {$gcObj.DownloadOld = 0; write-Config; Write-Host -ForegroundColor Yellow "`n`tDownload out of date Addons Updated Successfully"; $done = $true}
             "^q" {Write-Host "`n`tExiting."; $done = $true}
             default {Write-Host -ForegroundColor Red "`n`tInvalid Option...`n"}
         }
@@ -296,23 +296,23 @@ function update-downloadOld ($gcObj) {
 
 }
 
-function update-Settings ($gcObj) {
+function update-Settings () {
     do {
         $done = $false
-        show-Settings $gcObj
+        show-Settings
         $choice = Read-Host "`n`tNumber of Setting to Change ('q' to exit)"
         switch ($choice) {
-            0 {update-installPath $gcObj; $done = $true}
-            1 {update-tempPath $gcObj; $done = $true}
-            2 {update-wowVers $gcObj; $done = $true}
-            3 {update-downloadOld $gcObjl; $done = $true}
+            0 {update-installPath; $done = $true}
+            1 {update-tempPath; $done = $true}
+            2 {update-wowVers; $done = $true}
+            3 {update-downloadOld; $done = $true}
             "q" {$done = $true}
             default {Write-Host -ForegroundColor Red "`n`tInvalid Option..."}
         }
     } until ($done)
 }
 
-function show-Settings ($gcObj) {
+function show-Settings () {
     Write-Host -NoNewLine -ForegroundColor Yellow "`n`t0. Addon Installation Path: "
     Write-Host $gcObj.InstallPath
     Write-Host -NoNewline -ForegroundColor Yellow "`n`t1. Temporary Files Path: "
@@ -323,7 +323,7 @@ function show-Settings ($gcObj) {
     Write-Host ([bool]$gcObj.DownloadOld)
 }
 
-function install-Addons ($gcObj, $addonNum) {
+function install-Addons ($addonNum) {
     $start = $addonNum
     if ($addonNum) {
         $end = $addonNum
@@ -362,7 +362,7 @@ function install-Addons ($gcObj, $addonNum) {
     }
 }
 
-function invoke-Menu ($gcObj) {
+function invoke-Menu () {
     do {
 Write-Host -NoNewLine -ForegroundColor DarkGreen @"
 `n`t[L]ist addon entries
@@ -378,10 +378,10 @@ Write-Host -NoNewLine -ForegroundColor DarkGreen @"
         $choice = Read-Host 
         switch ($choice) {
             "l" {show-Addons}
-            "n" {add-Addon $gcObj}
+            "n" {add-Addon}
             "c" {
                 if ($gcObj.Addons.count -gt 0) {
-                    update-Addon $gcObj
+                    update-Addon
                 } 
                 else {
                     write-host -ForegroundColor Red "`n`tNo addon entries found.`n"
@@ -389,15 +389,15 @@ Write-Host -NoNewLine -ForegroundColor DarkGreen @"
             }
             "r" {
                 if ($gcObj.Addons.count -gt 0) {
-                    remove-Addon $gcObj
+                    remove-Addon
                 } 
                 else {
                     write-host -ForegroundColor Red "`n`tNo addon entries found.`n"
                 }
             }
-            "s" {show-Settings $gcObj}
-            "e" {update-Settings $gcObj}
-            "i" {install-Addons $gcObj}
+            "s" {show-Settings}
+            "e" {update-Settings}
+            "i" {install-Addons}
             "u" {
                 show-Addons
                 $addonNum = Read-Host "`n`tNumber of Specific Addon to Install/Update (any non-number to exit)"
@@ -407,7 +407,7 @@ Write-Host -NoNewLine -ForegroundColor DarkGreen @"
                     }
                     else {
                         [int]$addonNum = $addonNum
-                        install-Addons $gcObj $addonNum
+                        install-Addons $addonNum
                     }
                 }
                 catch {
@@ -427,7 +427,7 @@ if (!(Test-Path $gcObj.InstallPath)) {
         exit 1
     }
     else {
-        update-installPath $gcObj
+        update-installPath
     }
 }
 if (!(Test-Path $gcObj.TempPath)) {
@@ -436,7 +436,7 @@ if (!(Test-Path $gcObj.TempPath)) {
         exit 1
     }
     else {
-        update-tempPath $gcObj
+        update-tempPath
     }
 }
 if (($gcObj.WowVers -notmatch "^[0-9]{1,2}\.[0-9]{1,2}\.[0-9]{1,2}$") -and ($gcObj.DownloadOld -eq 0)) {
@@ -445,12 +445,12 @@ if (($gcObj.WowVers -notmatch "^[0-9]{1,2}\.[0-9]{1,2}\.[0-9]{1,2}$") -and ($gcO
         exit 1
     }
     else {
-        update-wowVers $gcObj
+        update-wowVers
     }
 }
 if ($background) {
-    install-Addons $gcObj $addon
+    install-Addons $addon
 }
 else {
-    invoke-Menu $gcObj
+    invoke-Menu
 }
