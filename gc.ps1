@@ -419,7 +419,10 @@ Write-Host -NoNewLine -ForegroundColor DarkGreen @"
         }    
     } until ($choice -eq "q")
 }
- 
+
+if ($batch) {
+    Start-Transcript -Path ($MyInvocation.MyCommand.Path).Replace('ps1','log') -IncludeInvocationHeader
+}
 $gcObj = initialize-Config
 if (!(Test-Path $gcObj.InstallPath)) {
     Write-Host -ForegroundColor Red "`n`tInvalid Addon Installation Path"
@@ -450,6 +453,7 @@ if (($gcObj.WowVers -notmatch "^[0-9]{1,2}\.[0-9]{1,2}\.[0-9]{1,2}$") -and ($gcO
 }
 if ($batch) {
     install-Addons $addon
+    Stop-Transcript
 }
 else {
     invoke-Menu
