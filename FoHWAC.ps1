@@ -3,6 +3,11 @@ Param (
     [int]$addon,
     [string]$json="$PSScriptRoot\addons.json"
 )
+
+$curseUrl = "https://wow.curseforge.com/projects"
+$wowAceUrl = "https://www.wowace.com/projects"
+$urlSuffix = "files"
+
 function initialize-Config () {
     $configFile = "$PSScriptRoot\config.json"
     if (!(Test-Path $configFile)) {
@@ -377,7 +382,14 @@ function install-Addons ($addonNum) {
             $addonUrl = "$($addonObj.AddonUrl)/latest"
         }
         else {
-            $addonPage = Invoke-WebRequest $addonObj.AddonUrl
+            try {
+                $addonPage = Invoke-WebRequest $addonObj.AddonUrl
+            }
+            catch {
+                Write-Host -ForegroundColor Red "`n`t$($addonObj.AddonUrl) is not valid.`n"
+                continue
+            }
+            
             $addonVers = $addonPage.parsedhtml.body.getElementsByClassName("version-label")[0].innerText
             $addonLinks = $addonPage.Links | Where-Object {$_.Title -eq "download file"} | Select-Object href
             $addonUrlParse = $addonObj.AddonUrl.Split("/")
@@ -403,6 +415,28 @@ function install-Addons ($addonNum) {
     }
 }
 
+function get-objFromString ($encString) {
+    $stringObj = New-Object -TypeName psobject -Property @{"Addons"=@()}
+    $decString = [System.Text.Encoding]::ASCII.GetString([System.Convert]::FromBase64String($encString))
+    $decArray = $decString.Split(',')
+    ForEach ($dec in $decArray) {
+        if ($dec -match "^[0-1]:") {
+            $subArray = $dec.Split(':')
+            if ($subArray[0] -eq 0) {
+                $subObj = New-Object -TypeName psobject -Property @{"AddonName"=$subArray[1]; "AddonUrl"="$curseUrl/$($subArray[1])/$urlSuffix"; "AddonRel"=0}
+            }
+            else {
+                $subObj = New-Object -TypeName psobject -Property @{"AddonName"=$subArray[1]; "AddonUrl"="$wowAceUrl/$($subArray[1])/$urlSuffix"; "AddonRel"=0}
+            }
+            $stringObj.Addons += $subObj          
+        }
+        else {
+            Write-Host -ForegroundColor Red "`n`tError decoding an addon in string."
+        }  
+    }
+    return $stringObj
+}
+
 function invoke-Menu () {
     do {
 Write-Host -NoNewLine -ForegroundColor DarkGreen @"
@@ -411,8 +445,10 @@ Write-Host -NoNewLine -ForegroundColor DarkGreen @"
 `t[C]hange addon entry
 `t[R]emove addon entry
 `t[A]ddon file
+`t[D]ownload string
 `t[S]how settings
 `t[E]dit settings
+`t[W]rite addons json file
 `t[I]nstall/Update ALL Addons
 `t[U]pdate/Install Specific Addon
 `t[Q]uit:
@@ -438,6 +474,20 @@ Write-Host -NoNewLine -ForegroundColor DarkGreen @"
                     $addonsObj = initialize-Addons $json
                     Write-Host -ForegroundColor Cyan "`n`tDefault Addons File Loaded Successfully."
                 }
+            }
+            "d" {
+                Write-Host -NoNewline -ForegroundColor Cyan "`n`tPaste encoded download string: "
+                $encString = Read-Host
+                $stringAddonsObj = get-objFromString $encString
+                if ($stringAddonsObj.Addons.Count -gt 0) {
+                    $addonsObj = $stringAddonsObj
+                    $json = "http://string.obj"
+                    Write-Host -ForegroundColor Cyan "`n`tAddons From String Loaded Successfully."
+                }
+                else {
+                    Write-Host -ForegroundColor Red "`n`tString Did Not Contain Addon Data..."
+                }
+
             }
             "l" {show-Addons}
             "n" {add-Addon}
@@ -474,6 +524,17 @@ Write-Host -NoNewLine -ForegroundColor DarkGreen @"
                 }
                 catch {
                     $addonNum = $null
+                }
+            }
+            "w" {
+                Write-Host -NoNewline -ForegroundColor DarkCyan "`n`tEnter new or existing file name to write data: "
+                $newJson = Read-Host
+                if (Test-Path -IsValid $newJson) {
+                    write-addonsJson $newJson
+                    Write-Host -ForegroundColor Cyan "`n`tAddon Data Written Successfully to $(convert-path $newJson)"
+                }
+                else {
+                    Write-Host -ForegroundColor Red "`n`t$newJson is not formatted properly...`n"
                 }
             }
             "q" {Write-Host -ForegroundColor Yellow "`n`tExiting...`n"}
