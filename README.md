@@ -12,7 +12,7 @@ New additions:
 
 Added support for exchanging addon data via base64 encoded strings. At the moment, there is no function to create strings, only to consume them. However, you can make them by going to a base64 encoder and encoding a string in the following format:
 
-#:addon-name,#:another-addon
+ #:addon-name,#:another-addon
 
 The # should be either a 0 or 1 where 0 represents curseforge and 1 represents wowace. The addon name should match exactly the addon name in the URL for the addon. Separate multiple entries by comma. i.e. http://www.wowace.com/projects/skada would become 1:skada. Once you have created your comma separated string, convert it to base64 (using Powershell or a website such as https://www.base64decode.org/) and you can now share it with others. It can be pasted into the program via the [D]ownload string option.
 
