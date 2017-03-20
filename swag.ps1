@@ -410,9 +410,9 @@ function show-Settings () {
 }
 
 function install-Addons ($addonNum) {
-    $start = $addonNum
-    if ($addonNum) {
-        $end = $addonNum
+    [int]$start = $addonNum
+    if (!([string]::IsNullOrEmpty($addonNum))) {
+        [int]$end = $addonNum
     }
     else {
         $end = $addonsObj.Addons.Count-1
